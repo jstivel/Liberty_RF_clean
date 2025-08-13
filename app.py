@@ -11,93 +11,40 @@ import base64
 import gspread
 from gspread_dataframe import set_with_dataframe
 from google.oauth2.service_account import Credentials
+import dropbox
 
 # --- Configuración de las dimensiones del área de la imagen (en cm) ---
 
 # -- Función para autenticar y subir archivo a Google Drive
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-import os
-
-# Agrega estas importaciones al inicio de tu script si no están
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
-
-# Define los scopes que tu aplicación necesita
-# Define los scopes que tu aplicación necesita
-SCOPES = ['https://www.googleapis.com/auth/drive']
-
-def upload_to_drive(file_buffer, filename):
+def upload_to_dropbox(file_buffer, filename):
     """
-    Sube un archivo a Google Drive usando la autenticación OAuth 2.0
-    y gestionando el token en Streamlit Cloud.
+    Sube un archivo a Dropbox usando un token de acceso.
     """
-    creds = None
-    
-    # Intenta cargar el token desde los secretos de Streamlit
-    if 'gdrive_token' in st.secrets:
-        try:
-            creds_dict = json.loads(st.secrets['gdrive_token'])
-            creds = Credentials.from_authorized_user_info(creds_dict, SCOPES)
-        except (json.JSONDecodeError, KeyError):
-            st.error("Error al cargar el token. Por favor, reautentica.")
+    try:
+        # Obtén el token de acceso desde los secretos de Streamlit
+        dbx = dropbox.Dropbox(st.secrets['dropbox_access_token'])
 
-    # Si no hay credenciales válidas o el token ha expirado, inicia el flujo de autenticación
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            # Construye el diccionario de configuración del cliente directamente desde st.secrets
-            creds_config = {
-                "installed": dict(st.secrets['gdrive_credentials'])
-            }
-            
-            flow = InstalledAppFlow.from_client_config(creds_config, SCOPES)
-            
-            # Este es el paso clave: Streamlit no abre una ventana, así que necesitamos que el usuario
-            # obtenga el código de autorización manualmente.
-            auth_url, _ = flow.authorization_url(prompt='consent')
-            
-            st.info("Necesitas autorizar tu cuenta de Google para que la aplicación pueda subir archivos. Esto solo se hace una vez.")
-            st.markdown(f"**1. Copia este enlace y ábrelo en una nueva pestaña:**\n\n```\n{auth_url}\n```")
-            st.markdown("**2. Inicia sesión en tu cuenta de Google y dale permisos.**")
-            st.markdown("**3. Copia el código que te dará Google y pégalo en el campo de abajo.**")
-            
-            auth_code = st.text_input("Pega el código de autorización aquí:")
-            if auth_code:
-                flow.fetch_token(code=auth_code)
-                creds = flow.credentials
-                
-                # Guarda el token en los secretos de Streamlit
-                # Esto es crucial para que no se pida autenticación de nuevo
-                st.secrets['gdrive_token'] = creds.to_json()
-                st.success("¡Autenticación exitosa! Ahora puedes subir archivos.")
-                st.experimental_rerun()
+        # El path de destino en tu cuenta de Dropbox
+        # Por ejemplo, /Apps/NombreDeTuApp/nombre_del_archivo
+        dropbox_path = f"/Apps/Streamlit App Uploader/{filename}"
 
-    # Si tenemos las credenciales, procedemos con la subida
-    if creds:
-        # Aquí va el resto de tu código para subir el archivo
-        from googleapiclient.discovery import build
-        from googleapiclient.http import MediaIoBaseUpload
+        # Convierte el buffer de archivo a bytes para subirlo
+        file_buffer.seek(0)
+        data = file_buffer.read()
 
-        drive_service = build('drive', 'v3', credentials=creds)
-        file_metadata = {
-            'name': filename,
-            'parents': ['1EW0oLSVbbOmBbYyBgvngRLQA2gJ1-kFT']
-        }
-        
-        media = MediaIoBaseUpload(file_buffer,
-                                  mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                  resumable=True)
-        
-        drive_file = drive_service.files().create(body=file_metadata,
-                                                 media_body=media,
-                                                 fields='id').execute()
-        
-        st.success(f"¡El archivo '{filename}' ha sido subido exitosamente a Google Drive!")
-        return drive_file.get('id')
-    return None
+        # Sube el archivo a Dropbox
+        dbx.files_upload(data, dropbox_path, mode=dropbox.files.WriteMode('overwrite'))
+
+        st.success(f"¡El archivo '{filename}' ha sido subido exitosamente a Dropbox!")
+        return True
+
+    except dropbox.exceptions.AuthError as err:
+        st.error("Error de autenticación. Verifica tu token de acceso en Streamlit secrets.")
+        return False
+    except Exception as e:
+        st.error(f"Ocurrió un error al subir el archivo: {e}")
+        return False
+
 
 # -- Función llenar preventivo/recorredor
 def preventivo_recorredor(formato_seleccionado,ejecutor,direccion,fecha_visita,operador,cambio):

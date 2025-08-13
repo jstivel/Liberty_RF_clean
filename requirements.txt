@@ -22,6 +22,7 @@ comtypes==1.4.8
 contourpy==1.3.1
 cycler==0.12.1
 decorator==5.1.1
+dropbox==12.0.2
 et_xmlfile==2.0.0
 executing==2.1.0
 ezdxf==1.3.4
@@ -99,6 +100,7 @@ pillow_heif==0.20.0
 platformdirs==3.11.0
 playwright==1.49.1
 plotly==5.24.1
+ply==3.11
 prompt_toolkit==3.0.48
 proto-plus==1.26.1
 protobuf==5.29.0
@@ -154,6 +156,7 @@ sortedcontainers==2.4.0
 soupsieve==2.6
 SQLAlchemy==2.0.38
 stack-data==0.6.3
+stone==3.3.1
 streamlit==1.40.2
 subtitle-parser==2.0.1
 tenacity==9.0.0
