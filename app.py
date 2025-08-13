@@ -343,7 +343,7 @@ else:
                             descripciones[idx] = st.text_input(f"Descripción para la Foto {idx+1}:", key=f"descripcion_{idx}", value=file.name)
 
 
-if st.button("Enviar a Drive"):
+if st.button("Generar Excel"):
     if ejecutor and direccion and fecha_visita and uploaded_files:
         if formato_seleccionado == "Factibilidades" and (not cliente or not telefono_ejecutor or not encargado or not telefono_encargado or not atiende_en_sitio or not telefono_atiende_sitio):
             st.warning("Por favor, completa todos los campos de Factibilidades.")
@@ -434,10 +434,16 @@ if st.button("Enviar a Drive"):
                     filename = f"{fecha_visita.strftime('%d-%m-%Y')}_{cambio}_{cliente}_{formato_acronimo}.xlsx"
                 else:
                     filename = f"{fecha_visita.strftime('%d-%m-%Y')}_{cambio}.xlsx"
+
+
+                b64 = base64.b64encode(buffer.getvalue()).decode()
+                href = f'<a href="data:application/octet-stream;base64,{b64}" download="{filename}">Haz clic aquí para descargar el archivo.</a>'
+                st.markdown(href, unsafe_allow_html=True)
+                st.success(f"¡Archivo '{filename}' listo para descargar!")
+
+                #upload_to_dropbox(buffer, filename)
                 
-                upload_to_dropbox(buffer, filename)
-                
-                st.success(f"¡El archivo '{filename}' ha sido subido exitosamente a Dropbox!")
+                #st.success(f"¡El archivo '{filename}' ha sido subido exitosamente a Dropbox!")
 
             except Exception as e:
                 st.error(f"Ocurrió un error: {e}")
