@@ -90,7 +90,7 @@ def interno_externo(formato_seleccionado,ejecutor,direccion,operador,cliente,cam
     return fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro
 
 # -- Función llenar factibilidades
-def factibilidades(ejecutor, direccion, fecha_visita, cliente, cambio, telefono_ejecutor, encargado, telefono_encargado, atiende_en_sitio, telefono_atiende_sitio):
+def factibilidades(ejecutor, direccion, fecha_visita, cliente, telefono_ejecutor, encargado, telefono_encargado, atiende_en_sitio, telefono_atiende_sitio):
     # Ajustamos las dimensiones del área de la imagen para que coincidan con las de "interno/externo"
     AREA_HEIGHT_CM = 6.8
     AREA_WIDTH_CM = 9.42
@@ -107,8 +107,7 @@ def factibilidades(ejecutor, direccion, fecha_visita, cliente, cambio, telefono_
     hoja['H7'] = telefono_encargado # Nuevo campo
     hoja['G9'] = atiende_en_sitio   # Nuevo campo
     hoja['H9'] = telefono_atiende_sitio # Nuevo campo
-    hoja['G10'] = cambio
-    fila_foto_inicio = 12
+    fila_foto_inicio = 10
     columna_foto_inicio = 1 # Columna A
     return fila_foto_inicio, AREA_WIDTH_CM, AREA_HEIGHT_CM, columna_foto_inicio, libro
 
