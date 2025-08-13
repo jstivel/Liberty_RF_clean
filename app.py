@@ -76,7 +76,7 @@ def interno_externo(formato_seleccionado,ejecutor,direccion,operador,cliente,cam
     AREA_WIDTH_CM = 9.42
     ruta_excel = ''
     
-    if formato_seleccionado == "clientes interno":
+    if formato_seleccionado == "clientes interno" or formato_seleccionado == "Empalmeria":
         ruta_excel = 'RF_CLIENTE_INTERNO.xlsx'
     
     elif formato_seleccionado == "clientes externo":
@@ -196,7 +196,7 @@ def calcular_offset(area_cm, img_cm):
 # --- Interfaz de Usuario en Streamlit ---
 st.title("Registro fotografico")
 
-formato = ["Preventivo", "Recorredor", "clientes interno", "clientes externo","Factibilidades","Cartera"]
+formato = ["Preventivo", "Recorredor", "clientes interno", "clientes externo","Factibilidades","Cartera", "Empalmeria"]
 formato_seleccionado = st.radio("Selecciona el formato:", formato)
 
 
@@ -204,13 +204,11 @@ opciones = ["DIEGO ARMANDO CHATEZ MARTINEZ","HAROLD ANDRES TORRES TEPUD","VICTOR
             "YESID ALFONSO SANCHEZ DIAZ","ALDIVEY QUINAYAS MUÑOZ","DANIEL EDUARDO TROCHEZ MUÑOZ","ANDRES CAMILO ALEGRIA ALEGRIA","VICTOR ALIRIO ARDILA CELIS"
             ]
 operadores = {"LIBERTY NETWORK","CLARO","MOVISTAR","TIGO", "IFX NETWOKS","ETB","VERIZON"
-
-
             }
 
 ejecutor = st.selectbox("Ejecutor:", opciones)
 
-if formato_seleccionado == "clientes interno" or formato_seleccionado == "clientes externo" or formato_seleccionado == "Factibilidades":
+if formato_seleccionado == "clientes interno" or formato_seleccionado == "clientes externo" or formato_seleccionado == "Factibilidades" or formato_seleccionado == "Empalmeria":
     cliente = st.text_input("Nombre del sitio:")
 
 #operador = map_operador.get(ejecutor, "")
@@ -258,7 +256,7 @@ if formato_seleccionado == "Cartera":
 
 else:
     uploaded_files = st.file_uploader("Subir Registros Fotográficos", accept_multiple_files=True,
-                                        type=["png", "jpg", "jpeg"])
+                                     type=["png", "jpg", "jpeg"])
 
     descripciones = [""] * len(uploaded_files)
 
@@ -288,37 +286,37 @@ else:
 
                             if key_rotacion not in st.session_state:
                                 st.session_state[key_rotacion] = 0
-
-                            col_imagen_botones = st.columns([3, 2])
-                            with col_imagen_botones[0]:
-                                try:
-                                    img = PILImage.open(file)
-                                    if st.session_state[key_rotacion] != 0:
-                                        rotated_img = img.rotate(st.session_state[key_rotacion], expand=True)
-                                        st.image(rotated_img,
+                            
+                            with cols[j]:
+                                col_imagen_botones = st.columns([3, 2])
+                                with col_imagen_botones[0]:
+                                    try:
+                                        img = PILImage.open(file)
+                                        if st.session_state[key_rotacion] != 0:
+                                            rotated_img = img.rotate(st.session_state[key_rotacion], expand=True)
+                                            st.image(rotated_img,
                                                     caption=f"Foto {idx + 1} (Rotada {st.session_state[key_rotacion]}°)",
                                                     width=100)
-                                    else:
-                                        st.image(img, caption=f"Foto {idx + 1}", width=100)
-                                except Exception as e:
-                                    st.error(f"Error: No se pudo abrir el archivo como imagen: {file.name}")
+                                        else:
+                                            st.image(img, caption=f"Foto {idx + 1}", width=100)
+                                    except Exception as e:
+                                        st.error(f"Error: No se pudo abrir el archivo como imagen: {file.name}")
 
-                            with col_imagen_botones[1]:
-                                col_rot_left, col_rot_right = st.columns(2)
-                                with col_rot_left:
-                                    if st.button("↺", key=f"rotar_der_{idx}"):
-                                        st.session_state[key_rotacion] = (st.session_state[key_rotacion] + 90) % 360
-                                        st.rerun()
+                                with col_imagen_botones[1]:
+                                    col_rot_left, col_rot_right = st.columns(2)
+                                    with col_rot_left:
+                                        if st.button("↺", key=f"rotar_der_{idx}"):
+                                            st.session_state[key_rotacion] = (st.session_state[key_rotacion] + 90) % 360
+                                            st.rerun()
 
-                                with col_rot_right:
-                                    if st.button("↻", key=f"rotar_izq_{idx}"):
-                                        st.session_state[key_rotacion] = (st.session_state[key_rotacion] - 90) % 360
-                                        st.rerun()
-
-                            descripcion_key = f"descripcion_factibilidad_{i}"
-                            descripciones.extend([""] * 3)
-                            descripciones[i * 3: (i + 1) * 3] = [st.text_input(
-                                f"Descripción para Fotos {(i * 3) + 1} a {(i + 1) * 3}:", key=descripcion_key)] * 3
+                                    with col_rot_right:
+                                        if st.button("↻", key=f"rotar_izq_{idx}"):
+                                            st.session_state[key_rotacion] = (st.session_state[key_rotacion] - 90) % 360
+                                            st.rerun()
+                                descripcion_key = f"descripcion_factibilidad_{i}"
+                                descripciones.extend([""] * 3)
+                                descripciones[i * 3: (i + 1) * 3] = [st.text_input(
+                                    f"Descripción para Fotos {(i * 3) + 1} a {(i + 1) * 3}:", key=descripcion_key)] * 3
             else:
                 for i, file in enumerate(uploaded_files):
                     key_rotacion = f"rotacion_{i}"
@@ -345,12 +343,12 @@ else:
                             if st.button("↺", key=f"rotar_der_{i}"):
                                 st.session_state[key_rotacion] = (st.session_state[key_rotacion] + 90) % 360
                                 st.rerun()
-                            
+                        
                         with col_rot_right:
                             if st.button("↻", key=f"rotar_izq_{i}"):
                                 st.session_state[key_rotacion] = (st.session_state[key_rotacion] - 90) % 360
                                 st.rerun()
-                            
+                        
                     descripciones[i] = st.text_input(f"Descripción para la Foto {i+1}:", key=f"descripcion_{i}", value= file.name)
             
 
@@ -362,7 +360,7 @@ if st.button("Enviar a Drive"):
                 fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = preventivo_recorredor(formato_seleccionado,ejecutor,direccion,fecha_visita,operador,cambio)
             elif formato_seleccionado == "Recorredor":
                 fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = preventivo_recorredor(formato_seleccionado,ejecutor,direccion,fecha_visita,operador,cambio)
-            elif formato_seleccionado == "clientes interno":
+            elif formato_seleccionado == "clientes interno" or formato_seleccionado == "Empalmeria":
                 fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = interno_externo(formato_seleccionado,ejecutor,direccion,operador,cliente,cambio)
             elif formato_seleccionado == "clientes externo":
                 fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = interno_externo(formato_seleccionado,ejecutor,direccion,operador,cliente,cambio)
@@ -440,11 +438,26 @@ if st.button("Enviar a Drive"):
             buffer = BytesIO()
             libro.save(buffer)
             buffer.seek(0)
+
+            # Lógica para determinar el acrónimo del formato
+            if formato_seleccionado == "clientes interno":
+                formato_acronimo = "int"
+                filename = f"{fecha_visita.strftime('%d-%m-%Y')}_{cambio}_{cliente}_{formato_acronimo}.xlsx"
+            elif formato_seleccionado == "clientes externo":
+                formato_acronimo = "ext"
+                filename = f"{fecha_visita.strftime('%d-%m-%Y')}_{cambio}_{cliente}_{formato_acronimo}.xlsx"
+            elif formato_seleccionado == "Empalmeria":
+                formato_acronimo = "emp"
+                filename = f"{fecha_visita.strftime('%d-%m-%Y')}_{cambio}_{cliente}_{formato_acronimo}.xlsx"
+            elif formato_seleccionado == "Factibilidades":
+                formato_acronimo = "fac"
+                filename = f"{fecha_visita.strftime('%d-%m-%Y')}_{cambio}_{cliente}_{formato_acronimo}.xlsx"
+            else:
+                filename = f"{fecha_visita.strftime('%d-%m-%Y')}_{cambio}.xlsx"
             
-            filename = f"Registro_fotografico_{fecha_visita.strftime('%d-%m-%Y')} {direccion}.xlsx"
             upload_to_dropbox(buffer, filename)
             
-            st.success(f"¡El archivo '{filename}' ha sido subido exitosamente a Google Drive!")
+            st.success(f"¡El archivo '{filename}' ha sido subido exitosamente a Dropbox!")
 
         except Exception as e:
             st.error(f"Ocurrió un error: {e}")
