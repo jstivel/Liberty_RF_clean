@@ -37,26 +37,22 @@ def upload_to_drive(file_buffer, filename):
     
     # Intenta cargar el token desde los secretos de Streamlit
     if 'gdrive_token' in st.secrets:
-        creds_dict = json.loads(st.secrets['gdrive_token'])
-        creds = Credentials.from_authorized_user_info(creds_dict, SCOPES)
-    
+        try:
+            creds_dict = json.loads(st.secrets['gdrive_token'])
+            creds = Credentials.from_authorized_user_info(creds_dict, SCOPES)
+        except (json.JSONDecodeError, KeyError):
+            st.error("Error al cargar el token. Por favor, reautentica.")
+
     # Si no hay credenciales válidas o el token ha expirado, inicia el flujo de autenticación
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            # Reconstruye el JSON de credenciales para iniciar el flujo de autenticación
+            # Construye el diccionario de configuración del cliente directamente desde st.secrets
             creds_config = {
-                "installed": {
-                    "client_id": st.secrets['gdrive_credentials']['client_id'],
-                    "project_id": st.secrets['gdrive_credentials']['project_id'],
-                    "auth_uri": st.secrets['gdrive_credentials']['auth_uri'],
-                    "token_uri": st.secrets['gdrive_credentials']['token_uri'],
-                    "auth_provider_x509_cert_url": st.secrets['gdrive_credentials']['auth_provider_x509_cert_url'],
-                    "client_secret": st.secrets['gdrive_credentials']['client_secret'],
-                    "redirect_uris": st.secrets['gdrive_credentials']['redirect_uris']
-                }
+                "installed": dict(st.secrets['gdrive_credentials'])
             }
+            
             flow = InstalledAppFlow.from_client_config(creds_config, SCOPES)
             
             # Este es el paso clave: Streamlit no abre una ventana, así que necesitamos que el usuario
@@ -72,7 +68,8 @@ def upload_to_drive(file_buffer, filename):
             if auth_code:
                 flow.fetch_token(code=auth_code)
                 creds = flow.credentials
-                # Guardamos el token en los secretos de Streamlit
+                
+                # Guarda el token en los secretos de Streamlit
                 # Esto es crucial para que no se pida autenticación de nuevo
                 st.secrets['gdrive_token'] = creds.to_json()
                 st.success("¡Autenticación exitosa! Ahora puedes subir archivos.")
@@ -81,7 +78,6 @@ def upload_to_drive(file_buffer, filename):
     # Si tenemos las credenciales, procedemos con la subida
     if creds:
         # Aquí va el resto de tu código para subir el archivo
-        # Asegúrate de que las importaciones de Google API estén al principio del script
         from googleapiclient.discovery import build
         from googleapiclient.http import MediaIoBaseUpload
 
