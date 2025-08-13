@@ -30,50 +30,71 @@ SCOPES = ['https://www.googleapis.com/auth/drive']
 
 def upload_to_drive(file_buffer, filename):
     """
-    Sube un archivo a Google Drive usando la autenticación OAuth 2.0.
-    La primera vez, te pedirá autenticarte en el navegador.
+    Sube un archivo a Google Drive usando la autenticación OAuth 2.0
+    y gestionando el token en Streamlit Cloud.
     """
     creds = None
     
-    # Intenta cargar las credenciales del token.json
-    if os.path.exists('tokens/token.json'):
-        creds = Credentials.from_authorized_user_file('tokens/token.json', SCOPES)
+    # Intenta cargar el token desde los secretos de Streamlit
+    if 'gdrive_token' in st.secrets:
+        creds_dict = json.loads(st.secrets['gdrive_token'])
+        creds = Credentials.from_authorized_user_info(creds_dict, SCOPES)
     
-    # Si no hay credenciales válidas, inicia el flujo de autenticación
+    # Si no hay credenciales válidas o el token ha expirado, inicia el flujo de autenticación
     if not creds or not creds.valid:
-        # Refresca el token si ha expirado
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            # Inicia el flujo de autenticación desde el archivo credentials.json
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'tokens/credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
+            # Reconstruye el JSON de credenciales para iniciar el flujo de autenticación
+            creds_info = {
+                "installed": {
+                    "client_id": st.secrets['gdrive_credentials']['client_id'],
+                    "project_id": st.secrets['gdrive_credentials']['project_id'],
+                    "auth_uri": st.secrets['gdrive_credentials']['auth_uri'],
+                    "token_uri": st.secrets['gdrive_credentials']['token_uri'],
+                    "auth_provider_x509_cert_url": st.secrets['gdrive_credentials']['auth_provider_x509_cert_url'],
+                    "client_secret": st.secrets['gdrive_credentials']['client_secret'],
+                    "redirect_uris": st.secrets['gdrive_credentials']['redirect_uris']
+                }
+            }
+            flow = InstalledAppFlow.from_client_secrets_json(creds_info, SCOPES)
+            
+            # Este es el paso clave: Streamlit no abre una ventana, así que necesitamos que el usuario
+            # obtenga el código de autorización manualmente.
+            auth_url, _ = flow.authorization_url(prompt='consent')
+            
+            st.info("Necesitas autorizar tu cuenta de Google para que la aplicación pueda subir archivos. Esto solo se hace una vez.")
+            st.markdown(f"**1. Copia este enlace y ábrelo en una nueva pestaña:**\n\n```\n{auth_url}\n```")
+            st.markdown("**2. Inicia sesión en tu cuenta de Google y dale permisos.**")
+            st.markdown("**3. Copia el código que te dará Google y pégalo en el campo de abajo.**")
+            
+            auth_code = st.text_input("Pega el código de autorización aquí:")
+            if auth_code:
+                flow.fetch_token(code=auth_code)
+                creds = flow.credentials
+                st.secrets['gdrive_token'] = creds.to_json()
+                st.success("¡Autenticación exitosa! Ahora puedes subir archivos.")
+                st.experimental_rerun()
+
+    # Si tenemos las credenciales, procedemos con la subida
+    if creds:
+        drive_service = build('drive', 'v3', credentials=creds)
+        file_metadata = {
+            'name': filename,
+            'parents': ['1EW0oLSVbbOmBbYyBgvngRLQA2gJ1-kFT']
+        }
         
-        # Guarda las credenciales para la próxima vez
-        with open('tokens/token.json', 'w') as token:
-            token.write(creds.to_json())
-
-    # Construir el servicio de la API de Drive
-    drive_service = build('drive', 'v3', credentials=creds)
-
-    # Preparar los metadatos y el cuerpo del archivo
-    file_metadata = {
-        'name': filename,
-        'parents': ['1EW0oLSVbbOmBbYyBgvngRLQA2gJ1-kFT'] # ID de tu carpeta
-    }
-
-    media = MediaIoBaseUpload(file_buffer,
-                              mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                              resumable=True)
-
-    # Subir el archivo a Google Drive
-    drive_file = drive_service.files().create(body=file_metadata,
-                                             media_body=media,
-                                             fields='id').execute()
-    
-    st.success(f"¡El archivo '{filename}' ha sido subido exitosamente a Google Drive!")
-    return drive_file.get('id')
+        media = MediaIoBaseUpload(file_buffer,
+                                  mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                  resumable=True)
+        
+        drive_file = drive_service.files().create(body=file_metadata,
+                                                 media_body=media,
+                                                 fields='id').execute()
+        
+        st.success(f"¡El archivo '{filename}' ha sido subido exitosamente a Google Drive!")
+        return drive_file.get('id')
+    return None
 
 # -- Función llenar preventivo/recorredor
 def preventivo_recorredor(formato_seleccionado,ejecutor,direccion,fecha_visita,operador,cambio):
