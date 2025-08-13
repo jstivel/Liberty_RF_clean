@@ -360,7 +360,7 @@ if st.button("Enviar a Drive"):
                     fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = interno_externo(formato_seleccionado,ejecutor,direccion,operador,cliente,cambio)
                 elif formato_seleccionado == "Factibilidades":
                     # Llamamos a la función con los nuevos campos
-                    fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = factibilidades(ejecutor,direccion,fecha_visita,cliente,cambio,telefono_ejecutor,encargado,telefono_encargado,atiende_en_sitio,telefono_atiende_sitio)
+                    fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = factibilidades(ejecutor,direccion,fecha_visita,cliente,telefono_ejecutor,encargado,telefono_encargado,atiende_en_sitio,telefono_atiende_sitio)
                 elif formato_seleccionado == "Cartera":
                     fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = cartera(ejecutor,direccion,fecha_visita,operador,cliente,archivos_por_poste)
                 
