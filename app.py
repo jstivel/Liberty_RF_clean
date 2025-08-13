@@ -387,14 +387,8 @@ if st.button("Enviar a Drive"):
                     img = Image(img_buffer)
 
                     # --- Calcular la columna de anclaje para Factibilidades (AHORA ES IGUAL QUE OTROS FORMATOS) ---
-                    if formato_seleccionado == "Factibilidades":
-                        if i % 3 == 0:
-                            col_idx = 0  # Columna A
-                        elif i % 3 == 1:
-                            col_idx = 3  # Columna D
-                        else:
-                            col_idx = 6  # Columna G
-                    else: # Para otros formatos, la lógica original
+                   
+                    if formato_seleccionado: # Para otros formatos, la lógica original
                         col_idx = (columna_foto_inicio - 1) + (4 * (i % 2))
 
                     row_idx = fila_actual_foto - 1
@@ -410,10 +404,12 @@ if st.button("Enviar a Drive"):
 
                     # --- Lógica de descripción ---
                     if formato_seleccionado == "Factibilidades":
-                        celda_descripcion_inicio = f"B{fila_actual_foto+1 }"
-                        # 1. Asigna el valor a la celda antes de fusionar.
+                        # 1. Coloca la descripción en la celda inicial del rango fusionado.
+                        celda_descripcion_inicio = f"B{fila_actual_foto}"
                         hoja[celda_descripcion_inicio] = descripciones[i]
-                        celda_descripcion_fin = f"H{fila_actual_foto+1 }"
+
+                        # 2. Ahora, fusiona las celdas.
+                        celda_descripcion_fin = f"H{fila_actual_foto + 2}"
                         hoja.merge_cells(f"{celda_descripcion_inicio}:{celda_descripcion_fin}")
                         
                         if (i + 1) % 3 == 0:
