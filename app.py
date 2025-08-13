@@ -296,53 +296,7 @@ else:
             if operador:
                 st.write(f"**Teléfono:** {operador}")
         
-        if uploaded_files :
-            st.write("**Registros Fotográficos:**")
-            
-            # Lógica para la vista previa de las fotos, ahora es la misma para todos excepto "Cartera"
-            if formato_seleccionado == "Factibilidades":
-                num_cols = 3
-            else:
-                num_cols = 2
-            
-            num_filas_preview = (len(uploaded_files) + num_cols - 1) // num_cols
-            for i in range(num_filas_preview):
-                cols = st.columns(num_cols)
-                for j in range(num_cols):
-                    idx = i * num_cols + j
-                    if idx < len(uploaded_files):
-                        file = uploaded_files[idx]
-                        key_rotacion = f"rotacion_{idx}"
-                        key_imagen_rotada = f"imagen_rotada_{idx}"
-
-                        if key_rotacion not in st.session_state:
-                            st.session_state[key_rotacion] = 0
-                        
-                        with cols[j]:
-                            col_imagen_botones = st.columns([3, 2])
-                            with col_imagen_botones[0]:
-                                try:
-                                    img = PILImage.open(file)
-                                    if st.session_state[key_rotacion] != 0:
-                                        rotated_img = img.rotate(st.session_state[key_rotacion], expand=True)
-                                        st.image(rotated_img,
-                                                    caption=f"Foto {idx + 1} (Rotada {st.session_state[key_rotacion]}°)",
-                                                    width=100)
-                                    else:
-                                        st.image(img, caption=f"Foto {idx + 1}", width=100)
-                                except Exception as e:
-                                    st.error(f"Error: No se pudo abrir el archivo como imagen: {file.name}")
-                            with col_imagen_botones[1]:
-                                if st.button("↺", key=f"rotar_der_{idx}"):
-                                    st.session_state[key_rotacion] = (st.session_state[key_rotacion] + 90) % 360
-                                    st.rerun()
-
-                                if st.button("↻", key=f"rotar_izq_{idx}"):
-                                    st.session_state[key_rotacion] = (st.session_state[key_rotacion] - 90) % 360
-                                    st.rerun()
-                                
-                            descripciones[idx] = st.text_input(f"Descripción para la Foto {idx+1}:", key=f"descripcion_{idx}", value=file.name)
-
+        
 
 if st.button("Enviar a Drive"):
     if ejecutor and direccion and fecha_visita and uploaded_files:
