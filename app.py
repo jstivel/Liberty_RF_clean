@@ -442,7 +442,7 @@ if st.button("Enviar a Drive"):
             buffer.seek(0)
             
             filename = f"Registro_fotografico_{fecha_visita.strftime('%d-%m-%Y')} {direccion}.xlsx"
-            upload_to_drive(buffer, filename)
+            upload_to_dropbox(buffer, filename)
             
             st.success(f"¡El archivo '{filename}' ha sido subido exitosamente a Google Drive!")
 
