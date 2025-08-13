@@ -411,9 +411,11 @@ if st.button("Enviar a Drive"):
                     # --- Lógica de descripción ---
                     if formato_seleccionado == "Factibilidades":
                         celda_descripcion_inicio = f"B{fila_actual_foto+1 }"
+                        # 1. Asigna el valor a la celda antes de fusionar.
+                        hoja[celda_descripcion_inicio] = descripciones[i]
                         celda_descripcion_fin = f"H{fila_actual_foto+1 }"
                         hoja.merge_cells(f"{celda_descripcion_inicio}:{celda_descripcion_fin}")
-                        hoja[celda_descripcion_inicio] = descripciones[i]
+                        
                         if (i + 1) % 3 == 0:
                             fila_actual_foto += 6
                     else:
