@@ -1,0 +1,7 @@
+# Ignora los archivos de credenciales de Google
+tokens/
+
+# Ignora otros archivos de Python
+__pycache__/
+*.pyc
+.env
