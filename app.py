@@ -358,9 +358,10 @@ if st.button("Enviar a Drive"):
                     fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = interno_externo(formato_seleccionado,ejecutor,direccion,operador,cliente,cambio)
                 elif formato_seleccionado == "clientes externo":
                     fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = interno_externo(formato_seleccionado,ejecutor,direccion,operador,cliente,cambio)
+                
                 elif formato_seleccionado == "Factibilidades":
-                    # Llamamos a la función con los nuevos campos
                     fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = factibilidades(ejecutor,direccion,fecha_visita,cliente,telefono_ejecutor,encargado,telefono_encargado,atiende_en_sitio,telefono_atiende_sitio)
+                    
                 elif formato_seleccionado == "Cartera":
                     fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = cartera(ejecutor,direccion,fecha_visita,operador,cliente,archivos_por_poste)
                 
@@ -387,9 +388,8 @@ if st.button("Enviar a Drive"):
                     img = Image(img_buffer)
 
                     # --- Calcular la columna de anclaje para Factibilidades (AHORA ES IGUAL QUE OTROS FORMATOS) ---
-                   
-                    if formato_seleccionado: # Para otros formatos, la lógica original
-                        col_idx = (columna_foto_inicio - 1) + (4 * (i % 2))
+                    
+                    col_idx = (columna_foto_inicio - 1) + (4 * (i % 2))
 
                     row_idx = fila_actual_foto - 1
 
@@ -403,27 +403,16 @@ if st.button("Enviar a Drive"):
                     hoja.add_image(img)
 
                     # --- Lógica de descripción ---
-                    if formato_seleccionado == "Factibilidades":
-                        # 1. Coloca la descripción en la celda inicial del rango fusionado.
-                        celda_descripcion_inicio = f"B{fila_actual_foto}"
-                        hoja[celda_descripcion_inicio] = descripciones[i]
-
-                        # 2. Ahora, fusiona las celdas.
-                        celda_descripcion_fin = f"H{fila_actual_foto + 2}"
-                        hoja.merge_cells(f"{celda_descripcion_inicio}:{celda_descripcion_fin}")
-                        
-                        if (i + 1) % 3 == 0:
-                            fila_actual_foto += 6
+                    
+                    if (i + 1) % 2 != 0:
+                        celda_descripcion_inicio = f"B{fila_actual_foto + 15}"
+                        celda_descripcion_fin = f"D{fila_actual_foto + 16}"
                     else:
-                        if (i + 1) % 2 != 0:
-                            celda_descripcion_inicio = f"B{fila_actual_foto + 15}"
-                            celda_descripcion_fin = f"D{fila_actual_foto + 16}"
-                        else:
-                            celda_descripcion_inicio = f"F{fila_actual_foto + 15}"
-                            celda_descripcion_fin = f"H{fila_actual_foto + 16}"
-                            fila_actual_foto += 17
-                        hoja.merge_cells(f"{celda_descripcion_inicio}:{celda_descripcion_fin}")
-                        hoja[celda_descripcion_inicio] = descripciones[i]
+                        celda_descripcion_inicio = f"F{fila_actual_foto + 15}"
+                        celda_descripcion_fin = f"H{fila_actual_foto + 16}"
+                        fila_actual_foto += 17
+                    hoja.merge_cells(f"{celda_descripcion_inicio}:{celda_descripcion_fin}")
+                    hoja[celda_descripcion_inicio] = descripciones[i]
 
                 # --- Guardar y subir a Drive ---
                 buffer = BytesIO()
