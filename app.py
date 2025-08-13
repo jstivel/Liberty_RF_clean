@@ -101,13 +101,13 @@ def factibilidades(ejecutor, direccion, fecha_visita, cliente, cambio, telefono_
     hoja['C5'] = cliente
     hoja['C6'] = direccion
     hoja['C7'] = fecha_visita.strftime("%d-%m-%Y")
-    hoja['G5'] = ejecutor
-    hoja['H5'] = telefono_ejecutor # Nuevo campo
-    hoja['G6'] = encargado        # Nuevo campo
-    hoja['H6'] = telefono_encargado # Nuevo campo
-    hoja['G7'] = atiende_en_sitio   # Nuevo campo
-    hoja['H7'] = telefono_atiende_sitio # Nuevo campo
-    hoja['G8'] = cambio
+    hoja['G8'] = ejecutor
+    hoja['H8'] = telefono_ejecutor # Nuevo campo
+    hoja['G7'] = encargado        # Nuevo campo
+    hoja['H7'] = telefono_encargado # Nuevo campo
+    hoja['G9'] = atiende_en_sitio   # Nuevo campo
+    hoja['H9'] = telefono_atiende_sitio # Nuevo campo
+    hoja['G10'] = cambio
     fila_foto_inicio = 12
     columna_foto_inicio = 1 # Columna A
     return fila_foto_inicio, AREA_WIDTH_CM, AREA_HEIGHT_CM, columna_foto_inicio, libro
@@ -300,8 +300,10 @@ else:
             st.write("**Registros Fotográficos:**")
             
             # Lógica para la vista previa de las fotos, ahora es la misma para todos excepto "Cartera"
-           
-            num_cols = 2
+            if formato_seleccionado == "Factibilidades":
+                num_cols = 3
+            else:
+                num_cols = 2
             
             num_filas_preview = (len(uploaded_files) + num_cols - 1) // num_cols
             for i in range(num_filas_preview):
