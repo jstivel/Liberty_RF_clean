@@ -220,34 +220,34 @@ operadores = {"LIBERTY NETWORK","CLARO","MOVISTAR","TIGO", "IFX NETWOKS","ETB","
 ejecutor = st.selectbox("Ejecutor:", opciones)
 
 if formato_seleccionado == "Factibilidades":
-    ejecutor = st.selectbox("Ejecutor:", opciones)
     telefono_ejecutor = st.text_input("Teléfono del Ejecutor:", key="telefono_ejecutor")
     encargado = st.text_input("Encargado:")
     telefono_encargado = st.text_input("Teléfono del Encargado:", key="telefono_encargado")
     atiende_en_sitio = st.text_input("Atiende en Sitio:")
     telefono_atiende_sitio = st.text_input("Teléfono de Quien Atiende en Sitio:", key="telefono_atiende_sitio")
-    cliente = st.text_input("Nombre del sitio:")
-    direccion = st.text_input("DIRECCIÓN:")
-    cambio = st.text_input("CAMBIO,TICKET,OT:")
-    fecha_visita = st.date_input("FECHA DE LA VISITA:")
+    cliente = st.text_input("Nombre del sitio:", key="cliente_factibilidades")
+    direccion = st.text_input("DIRECCIÓN:", key="direccion_factibilidades")
+    cambio = st.text_input("CAMBIO,TICKET,OT:", key="cambio_factibilidades")
+    fecha_visita = st.date_input("FECHA DE LA VISITA:", key="fecha_factibilidades")
     # Se añade un selectbox para el operador, aunque no se usa en la función de llenado, se deja para la interfaz.
-    operador = st.selectbox("OPERADOR:", operadores)
+    operador = st.selectbox("OPERADOR:", operadores, key="operador_factibilidades_selectbox")
 else:
     # Campos para otros formatos
-    ejecutor = st.selectbox("Ejecutor:", opciones)
     if formato_seleccionado == "clientes interno" or formato_seleccionado == "clientes externo" or formato_seleccionado == "Empalmeria":
-        cliente = st.text_input("Nombre del sitio:")
-    #operador = map_operador.get(ejecutor, "")
-    direccion = st.text_input("DIRECCIÓN:")
-    cambio = st.text_input("CAMBIO,TICKET,OT:")
-    fecha_visita = st.date_input("FECHA DE LA VISITA:")
-    #operador = st.text_input("OPERADOR:", value=operador, disabled=True)
-    operador = st.selectbox("OPERADOR:",operadores)
+        cliente = st.text_input("Nombre del sitio:", key="cliente_otros")
+    else:
+        cliente = "" # Para evitar que la variable no esté definida
+        
+    direccion = st.text_input("DIRECCIÓN:", key="direccion_otros")
+    cambio = st.text_input("CAMBIO,TICKET,OT:", key="cambio_otros")
+    fecha_visita = st.date_input("FECHA DE LA VISITA:", key="fecha_otros")
+    operador = st.selectbox("OPERADOR:", operadores, key="operador_otros_selectbox")
     telefono_ejecutor = ""
     encargado = ""
     telefono_encargado = ""
     atiende_en_sitio = ""
     telefono_atiende_sitio = ""
+
 
 archivos_por_poste = []
 
