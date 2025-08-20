@@ -90,13 +90,14 @@ def interno_externo(formato_seleccionado,ejecutor,direccion,operador,cliente,cam
     return fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro
 
 # -- Función llenar factibilidades
-def factibilidades(ejecutor, direccion, fecha_visita, cliente, telefono_ejecutor, encargado, telefono_encargado, atiende_en_sitio, telefono_atiende_sitio):
+def factibilidades(ejecutor, direccion, fecha_visita, cliente, telefono_ejecutor, encargado, telefono_encargado, atiende_en_sitio, telefono_atiende_sitio,datos_factibilidades):
     # Ajustamos las dimensiones del área de la imagen para que coincidan con las de "interno/externo"
     AREA_HEIGHT_CM = 6.8
     AREA_WIDTH_CM = 9.42
     ruta_excel = 'RF_FACTIBILIDADES.xlsx'
     libro = load_workbook(ruta_excel)
     hoja = libro.active
+    
     # Llenamos las celdas del encabezado según las nuevas ubicaciones
     hoja['C5'] = cliente
     hoja['C6'] = direccion
@@ -109,6 +110,72 @@ def factibilidades(ejecutor, direccion, fecha_visita, cliente, telefono_ejecutor
     hoja['H9'] = telefono_atiende_sitio # Nuevo campo
     fila_foto_inicio = 10
     columna_foto_inicio = 1 # Columna A
+
+   # --- INICIO DE LA MODIFICACIÓN ---
+
+    # Creamos la hoja 'Checklist' (si no existe) y la hacemos la activa para llenarla
+    if 'Checklist' in libro.sheetnames:
+        hoja_check = libro['Checklist']
+    else:
+        hoja_check = libro.create_sheet('Checklist')
+    
+    # Mapeo de los nombres de los campos a las claves del diccionario
+    # Se hace manualmente para que el texto de la columna A sea legible para el usuario
+    mapeo_nombres_a_claves = {
+        "Resultado de la visita": "resultado_visita",
+        "Zona": "zona",
+        "Ciudad o Municipio": "ciudad",
+        "Numero de Cambio": "cambio_checklist",
+        "Nombre Cliente": "cliente_checklist",
+        "Dirección completa": "direccion_checklist",
+        "Nombre de la persona que acompaña en la visita": "persona_acompana",
+        "Cargo de la persona que acompaña en la visita": "cargo_persona",
+        "Horario en que se pueden realizar los trabajos": "horario_trabajos",
+        "Tomas eléctrica comercial disponible": "toma_electrica",
+        "Toma en regulador de voltaje disponible": "toma_regulador",
+        "Toma en UPS disponible": "toma_ups",
+        "Mediciones Eléctricas - Fase Tierra (110V - 120V)": "fase_tierra",
+        "Mediciones Eléctricas - Fase Neutro (110V 120V)": "fase_neutro",
+        "Mediciones Eléctricas - Tierra Neutro (0 - 0.08)": "tierra_neutro",
+        "Temperatura (0-30°C)": "temperatura",
+        "Humedad (5-85%)": "humedad",
+        "Aire Acondicionado disponible": "aire_acondicionado",
+        "Rack Disponible": "rack_disponible",
+        "Espacio Disponible en Rack": "espacio_rack",
+        "Bandeja disponible en Rack": "bandeja_rack",
+        "Adecuaciones Físicas del Sitio": "adecuaciones_fisicas",
+        "El edificio requiere un tipo de tubería": "tipo_tuberia",
+        "Requiere permisos de otros para trabajar en la obras internas": "permisos",
+        "Datos del Administrador del edificio (Nombre y Número de Celular o Correo) si": "datos_administrador",
+        "Condición especial para trabajo en alturas": "condicion_alturas",
+        "Se requiere alguna condición especial de HSE (Salud, Seguridad y Ambiente)": "condicion_hse",
+        "Punto en parque empresarial": "punto_parque",
+        "Observaciones": "observaciones_checklist",
+        "Nombre de proyectista en sitio": "proyectista",
+        "Fecha de la visita": "fecha_visita_checklist",
+        "Hora de la visita": "hora_visita"
+    }
+    
+    fila_actual = 5 # Empezamos a escribir a partir de la fila 5
+    # Llenamos los encabezados de las columnas para mayor claridad
+    hoja_check['A4'] = "PREGUNTA"
+    hoja_check['B4'] = "RESPUESTA"
+
+    # Iteramos sobre el diccionario para llenar las celdas
+    for nombre_pregunta, clave_diccionario in mapeo_nombres_a_claves.items():
+        # Escribimos el nombre de la pregunta en la columna A
+        hoja_check[f'A{fila_actual}'] = nombre_pregunta
+        
+        # Obtenemos el valor del diccionario de datos usando la clave
+        # Usamos .get() por si acaso falta algún dato
+        valor_respuesta = datos_factibilidades.get(clave_diccionario, "N/A")
+        
+        # Escribimos el valor de la respuesta en la columna B
+        hoja_check[f'B{fila_actual}'] = valor_respuesta
+
+        # Incrementamos la fila para el próximo campo
+        fila_actual += 1
+
     return fila_foto_inicio, AREA_WIDTH_CM, AREA_HEIGHT_CM, columna_foto_inicio, libro
 
 # -- Función llenar cartera
@@ -204,17 +271,102 @@ ejecutor = st.selectbox("Ejecutor:", opciones, key="ejecutor_selectbox")
 
 # --- Lógica condicional para los campos de entrada ---
 if formato_seleccionado == "Factibilidades":
-    telefono_ejecutor = st.text_input("Teléfono del Ejecutor:", key="telefono_ejecutor")
-    encargado = st.text_input("Encargado:")
-    telefono_encargado = st.text_input("Teléfono del Encargado:", key="telefono_encargado")
-    atiende_en_sitio = st.text_input("Atiende en Sitio:")
-    telefono_atiende_sitio = st.text_input("Teléfono de Quien Atiende en Sitio:", key="telefono_atiende_sitio")
-    cliente = st.text_input("Nombre del sitio:", key="cliente_factibilidades")
-    direccion = st.text_input("DIRECCIÓN:", key="direccion_factibilidades")
-    cambio = st.text_input("CAMBIO,TICKET,OT:", key="cambio_factibilidades")
-    fecha_visita = st.date_input("FECHA DE LA VISITA:", key="fecha_factibilidades")
-    # Se añade un selectbox para el operador, aunque no se usa en la función de llenado, se deja para la interfaz.
-    operador = st.selectbox("OPERADOR:", operadores, key="operador_factibilidades_selectbox")
+    
+    # Creamos las pestañas para organizar los campos de Factibilidades
+    tab_basicos, tab_checklist = st.tabs(["Datos Básicos", "Checklist de Factibilidades"])
+
+    with tab_basicos:
+        # Campos de entrada de la pestaña "Datos Básicos"
+        telefono_ejecutor = st.text_input("Teléfono del Ejecutor:", key="telefono_ejecutor")
+        encargado = st.text_input("Encargado:")
+        telefono_encargado = st.text_input("Teléfono del Encargado:", key="telefono_encargado")
+        atiende_en_sitio = st.text_input("Atiende en Sitio:")
+        telefono_atiende_sitio = st.text_input("Teléfono de Quien Atiende en Sitio:", key="telefono_atiende_sitio")
+        cliente = st.text_input("Nombre del sitio:", key="cliente_factibilidades")
+        direccion = st.text_input("DIRECCIÓN:", key="direccion_factibilidades")
+        cambio = st.text_input("CAMBIO,TICKET,OT:", key="cambio_factibilidades")
+        fecha_visita = st.date_input("FECHA DE LA VISITA:", key="fecha_factibilidades")
+        operador = st.selectbox("OPERADOR:", operadores, key="operador_factibilidades_selectbox")
+
+    with tab_checklist:
+        st.subheader("Checklist de Factibilidades")
+        resultado_visita_opciones = ["EXITOSA","FALLIDA"]
+        si_no_opciones = ["SI","NO"]
+        zona_opciones = ["URBANA","RURAL"]
+        ciudad_opciones = ["CALI","PASTO","IPIALES","POPAYAN","JAMUNDI","PALMIRA","YUMBO"]
+        
+        # Asignamos el valor seleccionado a una variable
+        resultado_visita = st.selectbox("Resultado de la visita", resultado_visita_opciones, key="checklist_resultado_visita")
+        zona = st.selectbox("Zona", zona_opciones, key="checklist_zona")
+        ciudad = st.selectbox("Ciudad o Municipio", ciudad_opciones, key="checklist_ciudad")
+        
+        # Estos campos deshabilitados también se asignan a variables
+        cambio_checklist = st.text_input("Numero de Cambio", value=cambio, disabled=True)
+        cliente_checklist = st.text_input("Nombre Cliente", value=cliente, disabled=True)
+        direccion_checklist = st.text_input("Dirección completa (Local-Piso-Nombre edificación-bloque-bodega-etc.)", value=direccion, disabled=True)
+        persona_acompana = st.text_input("Nombre de la persona que acompaña en la visita", value=atiende_en_sitio, disabled=True)
+        
+        cargo_persona = st.text_input("Cargo de la persona que acompaña en la visita", key="checklist_cargo_persona")
+        horario_trabajos = st.text_input("Horario en que se pueden realizar los trabajos", key="checklist_horario_trabajos")
+        toma_electrica = st.selectbox("Tomas eléctrica comercial disponible", si_no_opciones, key="checklist_toma_electrica")
+        toma_regulador = st.selectbox("Toma en regulador de voltaje disponible", si_no_opciones, key="checklist_toma_regulador")
+        toma_ups = st.selectbox("Toma en UPS disponible", si_no_opciones, key="checklist_toma_ups")
+        fase_tierra = st.text_input("Mediciones Eléctricas - Fase Tierra (110V - 120V)", key="checklist_fase_tierra")
+        fase_neutro = st.text_input("Mediciones Eléctricas - Fase Neutro (110V 120V)", key="checklist_fase_neutro")
+        tierra_neutro = st.text_input("Mediciones Eléctricas - Tierra Neutro (0 - 0.08)", key="checklist_tierra_neutro")
+        temperatura = st.text_input("Temperatura (0-30°C)", key="checklist_temperatura")
+        humedad = st.text_input("Humedad (5-85%)", key="checklist_humedad")
+        aire_acondicionado = st.selectbox("Aire Acondicionado disponible", si_no_opciones, key="checklist_aire_acondicionado")
+        rack_disponible = st.selectbox("Rack Disponible", si_no_opciones, key="checklist_rack_disponible")
+        espacio_rack = st.selectbox("Espacio Disponible en Rack", si_no_opciones, key="checklist_espacio_rack")
+        bandeja_rack = st.selectbox("Bandeja disponible en Rack", si_no_opciones, key="checklist_bandeja_rack")
+        adecuaciones_fisicas = st.selectbox("Adecuaciones Físicas del Sitio", si_no_opciones, key="checklist_adecuaciones_fisicas")
+        tipo_tuberia = st.text_input("El edificio requiere un tipo de tubería", key="checklist_tipo_tuberia")
+        permisos = st.selectbox("Requiere permisos de otros para trabajar en la obras internas", si_no_opciones, key="checklist_permisos")
+        datos_administrador = st.text_input("Datos del Administrador del edificio (Nombre y Número de Celular o Correo) si", key="checklist_datos_administrador")
+        condicion_alturas = st.selectbox("Condición especial para trabajo en alturas", si_no_opciones, key="checklist_condicion_alturas")
+        condicion_hse = st.selectbox("Se requiere alguna condición especial de HSE (Salud, Seguridad y Ambiente)", si_no_opciones, key="checklist_condicion_hse")
+        punto_parque = st.selectbox("Punto en parque empresarial (Se necesita cuadrilla para levantamiento de ductos)", si_no_opciones, key="checklist_punto_parque")
+        observaciones_checklist = st.text_input("Observaciones", key="checklist_observaciones")
+        proyectista = st.text_input("Nombre de proyectista en sitio", value=ejecutor, disabled=True)
+        fecha_visita_checklist = st.text_input("Fecha de la visita", value=fecha_visita, disabled=True)
+        hora_visita = st.time_input("Hora de la visita", key="checklist_hora_visita")
+        datos_factibilidades = {        
+        # Datos de la pestaña "Checklist"
+        'resultado_visita': resultado_visita,
+        'zona': zona,
+        'ciudad': ciudad,
+        'cambio_checklist': cambio_checklist,
+        'cliente_checklist': cliente_checklist,
+        'direccion_checklist': direccion_checklist,
+        'persona_acompana': persona_acompana,
+        'cargo_persona': cargo_persona,
+        'horario_trabajos': horario_trabajos,
+        'toma_electrica': toma_electrica,
+        'toma_regulador': toma_regulador,
+        'toma_ups': toma_ups,
+        'fase_tierra': fase_tierra,
+        'fase_neutro': fase_neutro,
+        'tierra_neutro': tierra_neutro,
+        'temperatura': temperatura,
+        'humedad': humedad,
+        'aire_acondicionado': aire_acondicionado,
+        'rack_disponible': rack_disponible,
+        'espacio_rack': espacio_rack,
+        'bandeja_rack': bandeja_rack,
+        'adecuaciones_fisicas': adecuaciones_fisicas,
+        'tipo_tuberia': tipo_tuberia,
+        'permisos': permisos,
+        'datos_administrador': datos_administrador,
+        'condicion_alturas': condicion_alturas,
+        'condicion_hse': condicion_hse,
+        'punto_parque': punto_parque,
+        'observaciones_checklist': observaciones_checklist,
+        'proyectista': proyectista,
+        'fecha_visita_checklist': fecha_visita_checklist,
+        'hora_visita': hora_visita,    }
+
+
 else:
     # Campos para otros formatos
     if formato_seleccionado == "clientes interno" or formato_seleccionado == "clientes externo" or formato_seleccionado == "Empalmeria":
@@ -360,7 +512,7 @@ if st.button("Generar Excel"):
                     fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = interno_externo(formato_seleccionado,ejecutor,direccion,operador,cliente,cambio)
                 
                 elif formato_seleccionado == "Factibilidades":
-                    fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = factibilidades(ejecutor,direccion,fecha_visita,cliente,telefono_ejecutor,encargado,telefono_encargado,atiende_en_sitio,telefono_atiende_sitio)
+                    fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = factibilidades(ejecutor,direccion,fecha_visita,cliente,telefono_ejecutor,encargado,telefono_encargado,atiende_en_sitio,telefono_atiende_sitio,datos_factibilidades)
                     
                 elif formato_seleccionado == "Cartera":
                     fila_foto_inicio,AREA_WIDTH_CM, AREA_HEIGHT_CM,columna_foto_inicio,libro = cartera(ejecutor,direccion,fecha_visita,operador,cliente,archivos_por_poste)
